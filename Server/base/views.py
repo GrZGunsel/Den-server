@@ -18,6 +18,7 @@ from django.contrib.auth.hashers import make_password
 from django.middleware.csrf import get_token
 from django.core import serializers
 from rest_framework.views import APIView
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -81,7 +82,7 @@ class CartAPIView(generics.ListAPIView):
 
 
 # login
-
+@csrf_exempt
 @api_view(['POST'])
 def add_to_cart(request):
     data = request.data.copy()
@@ -92,6 +93,7 @@ def add_to_cart(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@csrf_exempt
 @api_view(['PUT'])
 def update_cart(request, cart_id):
     try:
@@ -107,7 +109,7 @@ def update_cart(request, cart_id):
 
 
 
-
+@csrf_exempt
 @api_view(['POST'])
 def user_login(request):
     username = request.data.get('username')
@@ -122,12 +124,13 @@ def user_login(request):
     else:
         return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-
+@csrf_exempt
 @api_view(['POST'])
 def user_logout(request):
     logout(request)
     return Response({'success': 'User logged out'})
 
+@csrf_exempt
 @api_view(['POST'])
 def user_register(request):
     if request.method == 'POST':
@@ -152,7 +155,7 @@ def user_detail(request, user_id):
     # Return user data as JSON response
     return JsonResponse(user_data, safe=False)
 
-
+@csrf_exempt
 @api_view(['PUT'])
 def change_password(request):
     user = request.user

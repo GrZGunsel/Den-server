@@ -46,7 +46,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'delivery_address', 'is_paid', 'delivery_option', 'user', 'product')
+        fields = ('id', 'delivery_address', 'is_paid', 'delivery_option', 'user')
 
     def create(self, validated_data):
         cart_data = validated_data.pop('product')
