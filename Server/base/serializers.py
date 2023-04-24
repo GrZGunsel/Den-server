@@ -36,26 +36,26 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    # user = serializers.PrimaryKeyRelatedField(read_only=True)
+    product = ProductSerializer()
     class Meta:
         model = Cart
-        fields = ['user', 'product', 'quantity']
+        fields = ['id','user', 'product', 'quantity']
 
+
+
+
+
+class OrderCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = ['id','user', 'product', 'quantity']
 class OrderSerializer(serializers.ModelSerializer):
-    product = CartSerializer(many=True)
-
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    product = OrderCartSerializer(many=True)
     class Meta:
         model = Order
-        fields = ('id', 'delivery_address', 'is_paid', 'delivery_option', 'user')
-
-    def create(self, validated_data):
-        cart_data = validated_data.pop('product')
-        order = Order.objects.create(**validated_data)
-        for item in cart_data:
-            product_data = item.pop('product')
-            product = Product.objects.get(id=product_data['id'])
-            Cart.objects.create(user=order.user, product=product, order=order, **item)
-        return order
+        fields = ('id', 'delivery_address', 'is_paid', 'delivery_option', 'user','product')
 
 
 class ChangePasswordSerializer(serializers.Serializer):

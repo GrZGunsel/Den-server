@@ -57,13 +57,14 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
     
 class OrderCreateAPIView(APIView):
     serializer_class = OrderSerializer
-
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            order = serializer.save()
+            response_serializer = self.serializer_class(instance=order)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
 
 
 class OrderDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -86,12 +87,14 @@ class CartAPIView(generics.ListAPIView):
 @api_view(['POST'])
 def add_to_cart(request):
     data = request.data.copy()
-    data['quantity'] = 1  # Set default value for quantity to 1
+    data['quantity'] = 1
+    data['user_id'] = request.user.id  # Assuming you're using Django authentication
     serializer = CartSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @csrf_exempt
 @api_view(['PUT'])
