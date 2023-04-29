@@ -89,6 +89,7 @@ class OrderSerializer(serializers.ModelSerializer):
             quantity = product_data.get('quantity')
             order_product = OrderProduct.objects.create(product=product, quantity=quantity)
             order.products.add(order_product)
+        Cart.objects.filter(user=validated_data['user']).delete() 
         return order
 
 

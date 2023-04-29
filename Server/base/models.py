@@ -67,7 +67,7 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id}"
-
+    
 
 
 
