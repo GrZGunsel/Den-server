@@ -48,21 +48,23 @@ class Product(models.Model):
 #     is_paid = models.BooleanField(default=False)
 #     delivery_option = models.CharField(max_length=20, choices=DELIVERY_OPTIONS, default='standard')
 
+class Cart(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
 class Order(models.Model):
-    delivery_address = models.CharField(max_length=250)
+    delivery_address = models.CharField(max_length=200)
     is_paid = models.BooleanField(default=False)
     delivery_option = models.CharField(max_length=100)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
-    products = models.ManyToManyField(Product, related_name='orders')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    products = models.ManyToManyField(Cart)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Order #{self.id}"
 
 
-class Cart(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+
 
     

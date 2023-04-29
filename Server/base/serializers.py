@@ -42,6 +42,11 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ['id','user', 'product', 'quantity']
 
+class CreateCartSerializer(serializers.ModelSerializer):
+    # user = serializers.PrimaryKeyRelatedField(read_only=True)
+    class Meta:
+        model = Cart
+        fields = ['user', 'product', 'quantity']
 
 
 
@@ -50,12 +55,24 @@ class OrderCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id','user', 'product', 'quantity']
+        extra_kwargs = {'product': {'required': True}}
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    product = OrderCartSerializer(many=True)
+    products = OrderCartSerializer(many=True)
+
     class Meta:
         model = Order
-        fields = ('id', 'delivery_address', 'is_paid', 'delivery_option', 'user','product')
+        fields = ('id', 'delivery_address', 'is_paid', 'delivery_option', 'user', 'products')
+
+    def create(self, validated_data):
+        products_data = validated_data.pop('products')
+        order = Order.objects.create(**validated_data)
+        for product_data in products_data:
+            Cart.objects.create(order=order, **product_data)
+        return order
+
+
+
 
 
 class ChangePasswordSerializer(serializers.Serializer):

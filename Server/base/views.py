@@ -1,6 +1,6 @@
 from rest_framework import generics
 from .models import CustomUser, Category, Product, Order,Cart
-from .serializers import UserSerializer, CategorySerializer, ProductSerializer, OrderSerializer, CustomUserSerializer, ChangePasswordSerializer,CartSerializer
+from .serializers import UserSerializer, CategorySerializer, ProductSerializer, OrderSerializer, CustomUserSerializer, ChangePasswordSerializer,CartSerializer,CreateCartSerializer
 from django.contrib.auth.views import LoginView
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
@@ -54,18 +55,35 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    
-class OrderCreateAPIView(APIView):
+        
+    # class OrderCreateAPIView(APIView):
+    #     serializer_class = OrderSerializer
+    #     def post(self, request):
+    #         serializer = self.serializer_class(data=request.data)
+    #         if serializer.is_valid():
+    #             order = serializer.save()
+    #             response_serializer = self.serializer_class(instance=order)
+    #             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+
+
+class OrderCreateAPIView(generics.CreateAPIView):
     serializer_class = OrderSerializer
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            order = serializer.save()
-            response_serializer = self.serializer_class(instance=order)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+    permission_classes = (IsAuthenticated,)
+    
+class OrderRetrieveAPIView(generics.RetrieveAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Order.objects.all()
 
 
+class OrderListAPIView(generics.ListAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
 
 class OrderDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
@@ -88,8 +106,8 @@ class CartAPIView(generics.ListAPIView):
 def add_to_cart(request):
     data = request.data.copy()
     data['quantity'] = 1
-    data['user_id'] = request.user.id  # Assuming you're using Django authentication
-    serializer = CartSerializer(data=data)
+    data['user'] = request.user.id  # set the user ID in the data # Assuming you're using Django authentication
+    serializer = CreateCartSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -104,7 +122,7 @@ def update_cart(request, cart_id):
     except Cart.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    serializer = CartSerializer(cart, data=request.data, partial=True)
+    serializer = CreateCartSerializer(cart, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)

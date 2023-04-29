@@ -19,4 +19,6 @@ urlpatterns = [
     path('cart/', add_to_cart, name='add_to_cart'),
     path('cart/<int:cart_id>/', update_cart, name='update_cart'),
     path('carts/<int:user_id>/', views.CartAPIView.as_view(), name='cart-list'),
+     path('orderLists/', views.OrderListAPIView.as_view(), name='order-list'),
+    path('orders/<int:pk>/', views.OrderRetrieveAPIView.as_view(), name='order-detail'),
 ]
