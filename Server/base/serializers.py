@@ -75,7 +75,6 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     products = OrderProductSerializer(many=True)
 
     class Meta:
