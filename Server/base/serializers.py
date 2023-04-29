@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Category, Product, Order,Cart
+from .models import CustomUser, Category, Product, Order,Cart,OrderProduct
 
 
 from django.contrib.auth.models import User
@@ -35,12 +35,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 
-class CartSerializer(serializers.ModelSerializer):
-    # user = serializers.PrimaryKeyRelatedField(read_only=True)
-    product = ProductSerializer()
-    class Meta:
-        model = Cart
-        fields = ['id','user', 'product', 'quantity']
 
 class CreateCartSerializer(serializers.ModelSerializer):
     # user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -51,14 +45,38 @@ class CreateCartSerializer(serializers.ModelSerializer):
 
 
 
-class OrderCartSerializer(serializers.ModelSerializer):
+# class OrderCartSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Cart
+#         fields = ['id','user', 'product', 'quantity']
+#         extra_kwargs = {'product': {'required': True}}
+
+
+
+class CartSerializer(serializers.ModelSerializer):
+    # user = serializers.PrimaryKeyRelatedField(read_only=True)
+    product = ProductSerializer()
     class Meta:
         model = Cart
         fields = ['id','user', 'product', 'quantity']
-        extra_kwargs = {'product': {'required': True}}
+
+class OrderCartSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+
+    class Meta:
+        model = Cart
+        fields = ['product', 'quantity']
+
+class OrderProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderProduct
+        fields = ('product', 'quantity')
+
+
+
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    products = OrderCartSerializer(many=True)
+    products = OrderProductSerializer(many=True)
 
     class Meta:
         model = Order
@@ -68,8 +86,14 @@ class OrderSerializer(serializers.ModelSerializer):
         products_data = validated_data.pop('products')
         order = Order.objects.create(**validated_data)
         for product_data in products_data:
-            Cart.objects.create(order=order, **product_data)
+            product = product_data.get('product')
+            quantity = product_data.get('quantity')
+            order_product = OrderProduct.objects.create(product=product, quantity=quantity)
+            order.products.add(order_product)
         return order
+
+
+
 
 
 

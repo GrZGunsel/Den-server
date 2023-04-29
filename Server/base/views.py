@@ -68,9 +68,20 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-class OrderCreateAPIView(generics.CreateAPIView):
+class OrderCreateView(generics.CreateAPIView):
     serializer_class = OrderSerializer
-    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save(user=request.user)
+
+        return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
+    # def post(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 class OrderRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
@@ -106,7 +117,7 @@ class CartAPIView(generics.ListAPIView):
 def add_to_cart(request):
     data = request.data.copy()
     data['quantity'] = 1
-    data['user'] = request.user.id  # set the user ID in the data # Assuming you're using Django authentication
+    # data['user'] = request.user.id  # set the user ID in the data # Assuming you're using Django authentication
     serializer = CreateCartSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
